@@ -105,7 +105,7 @@ class FileUpload
             $this->title = $file->getClientOriginalName();
         }
 
-        $file = $this->model->attachments()->create([
+        $fileUploaded = $this->model->attachments()->create([
             'type' => $this->type,
             'file_name' => $filename,
             'name' => $this->title,
@@ -116,12 +116,12 @@ class FileUpload
             'sort_order' => $this->model->attachments()->whereType($this->type)->count(),
         ]);
 
-        $this->setDefaultConversions($file);
+        $this->setDefaultConversions($fileUploaded);
 
-        $this->dispatchConversionJobs($file);
+        $this->dispatchConversionJobs($fileUploaded);
 
         return [
-            'file_id' => $file->id,
+            'file_id' => $fileUploaded->id,
             'file_name' => $file->hashName(),
         ];
     }
