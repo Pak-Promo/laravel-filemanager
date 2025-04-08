@@ -1,7 +1,7 @@
 # File Manager for Laravel
 
 This package can associate images with Eloquent models.
-
+[![PHP Composer](https://github.com/Pak-Promo/laravel-filemanager/actions/workflows/php.yml/badge.svg)](https://github.com/Pak-Promo/laravel-filemanager/actions/workflows/php.yml)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/pakpromo/laravel-filemanager.svg?style=flat-square)](https://packagist.org/packages/pakpromo/laravel-filemanager)
 [![Total Downloads](https://img.shields.io/packagist/dt/pakpromo/laravel-filemanager.svg?style=flat-square)](https://packagist.org/packages/pakpromo/laravel-filemanager)
 
