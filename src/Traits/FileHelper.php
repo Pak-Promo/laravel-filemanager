@@ -6,12 +6,12 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use PakPromo\FileManager\Exceptions\FileSizeTooBigException;
 use PakPromo\FileManager\Exceptions\InvalidConversionException;
-use PakPromo\FileManager\Jobs\MediaConversion;
+use PakPromo\FileManager\Jobs\FileConversion;
 use PakPromo\FileManager\Jobs\ThumbnailConversion;
 use PakPromo\FileManager\Jobs\WebpConversion;
-use PakPromo\FileManager\Models\Media;
+use PakPromo\FileManager\Models\File;
 
-trait MediaHelper
+trait FileHelper
 {
     public string $type;
     public string $collection;
@@ -59,16 +59,16 @@ trait MediaHelper
         return Str::kebab($collection);
     }
 
-    protected function setDefaultConversions(Media $media)
+    protected function setDefaultConversions(File $file)
     {
         $conversions = [
-            'original' => $media->getFilePath(),
-            'thumbnail' => $media->getFilePath(),
+            'original' => $file->getFilePath(),
+            'thumbnail' => $file->getFilePath(),
         ];
 
-        $media->conversions = $conversions;
+        $file->conversions = $conversions;
 
-        $media->save();
+        $file->save();
     }
 
     protected function checkMaxFileUploadSize(UploadedFile $file)
@@ -84,13 +84,13 @@ trait MediaHelper
             return;
         }
 
-        $this->model->registerMediaConversions();
+        $this->model->registerFileConversions();
 
-        if (empty($this->model->mediaConversions)) {
+        if (empty($this->model->fileConversions)) {
             return;
         }
 
-        foreach ($this->model->mediaConversions as $conversion) {
+        foreach ($this->model->fileConversions as $conversion) {
             if (! property_exists($conversion, 'width')) {
                 throw InvalidConversionException::width();
             }
@@ -101,37 +101,37 @@ trait MediaHelper
         }
     }
 
-    protected function dispatchConversionJobs(Media $media)
+    protected function dispatchConversionJobs(File $file)
     {
-        if (! in_array($media->mime_type, $this->allowedMimeTypesForConversion())) {
+        if (! in_array($file->mime_type, $this->allowedMimeTypesForConversion())) {
             return;
         }
 
         $webp_conversion = config('filemanager.webp_conversion');
 
-        if ($webp_conversion && $media->mime_type !== 'image/webp') {
-            $mediaConversions = $this->model->mediaConversions;
+        if ($webp_conversion && $file->mime_type !== 'image/webp') {
+            $fileConversions = $this->model->fileConversions;
 
             if ($this->without_conversions) {
-                $mediaConversions = [];
+                $fileConversions = [];
             }
 
-            WebpConversion::dispatch($media->id, $mediaConversions);
+            WebpConversion::dispatch($file->id, $fileConversions);
 
             return;
         }
 
-        ThumbnailConversion::dispatch($media->id);
+        ThumbnailConversion::dispatch($file->id);
 
         if ($this->without_conversions) {
             return;
         }
 
-        if (empty($this->model->mediaConversions)) {
+        if (empty($this->model->fileConversions)) {
             return;
         }
 
-        MediaConversion::dispatch($media->id, $this->model->mediaConversions);
+        FileConversion::dispatch($file->id, $this->model->fileConversions);
     }
 
     protected function allowedMimeTypesForConversion()

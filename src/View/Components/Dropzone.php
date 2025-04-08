@@ -54,7 +54,7 @@ class Dropzone extends Component
                         'size' => $attachment->size,
                         'upload' => [
                             'filename' => $attachment->file_name,
-                            'media_id' => $attachment->id,
+                            'file_id' => $attachment->id,
                         ]
                     ],
                     'url' => $attachment->getUrl('thumbnail'),

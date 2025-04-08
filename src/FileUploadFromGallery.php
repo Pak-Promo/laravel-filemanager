@@ -4,11 +4,11 @@ namespace PakPromo\FileManager;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-use PakPromo\FileManager\Traits\MediaHelper;
+use PakPromo\FileManager\Traits\FileHelper;
 
-class MediaUploadFromGallery
+class FileUploadFromGallery
 {
-    use MediaHelper;
+    use FileHelper;
 
     public function __construct()
     {
@@ -26,7 +26,7 @@ class MediaUploadFromGallery
         return $this;
     }
 
-    public function toMediaCollection(string $collection = ''): bool
+    public function toFileCollection(string $collection = ''): bool
     {
         $this->collection = $collection;
 
@@ -40,12 +40,12 @@ class MediaUploadFromGallery
             return false;
         }
 
-        $this->moveTempFilesToMedia($files);
+        $this->moveTempFilesToFile($files);
 
         return true;
     }
 
-    protected function moveTempFilesToMedia(array $files)
+    protected function moveTempFilesToFile(array $files)
     {
         foreach ($files as $file) {
             $temp_path = 'temp' . DIRECTORY_SEPARATOR . 'dropzone' . DIRECTORY_SEPARATOR . $file;
@@ -53,7 +53,7 @@ class MediaUploadFromGallery
 
             Storage::disk($this->disk)->move($temp_path, $new_path);
 
-            $media = $this->model->attachments()->create([
+            $file = $this->model->attachments()->create([
                 'type' => $this->type,
                 'file_name' => $file,
                 'mime_type' => Storage::disk($this->disk)->mimeType($new_path),
@@ -63,9 +63,9 @@ class MediaUploadFromGallery
                 'sort_order' => $this->model->attachments()->whereType($this->type)->count(),
             ]);
 
-            $this->setDefaultConversions($media);
+            $this->setDefaultConversions($file);
 
-            $this->dispatchConversionJobs($media);
+            $this->dispatchConversionJobs($file);
         }
     }
 }

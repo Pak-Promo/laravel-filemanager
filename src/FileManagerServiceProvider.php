@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver;
-use PakPromo\FileManager\Models\Media;
-use PakPromo\FileManager\Observers\MediaObserver;
+use PakPromo\FileManager\Models\File;
+use PakPromo\FileManager\Observers\FileObserver;
 use PakPromo\FileManager\View\Components\Dropzone;
 use PakPromo\FileManager\View\Components\FileUpload;
 
@@ -58,7 +58,7 @@ class FileManagerServiceProvider extends ServiceProvider
             Dropzone::class,
         ]);
 
-        Media::observe(MediaObserver::class);
+        File::observe(FileObserver::class);
 
         Blade::directive('filemanagerScript', function () {
             return "<script src='".route('filemanager.uploader')."?ver=4.0.2'></script>";

@@ -70,7 +70,7 @@
           serverFileName.forEach(element => {
             if (element.file_name === file.upload.filename) {
               file.upload.filename = element.new_name;
-              file.upload.media_id = element.media_id;
+              file.upload.file_id = element.file_id;
               fileList['{{ $name }}'].push(element.new_name);
             }
           });
@@ -101,7 +101,7 @@
 
           const data = `{
             "file_name": "${file_name}",
-            "media_id": "${file.upload.media_id}"
+            "file_id": "${file.upload.file_id}"
           }`
 
           xhr.send(data);

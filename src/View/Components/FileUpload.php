@@ -5,7 +5,7 @@ namespace PakPromo\FileManager\View\Components;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\View\Component;
-use PakPromo\FileManager\Models\Media;
+use PakPromo\FileManager\Models\File;
 
 class FileUpload extends Component
 {
@@ -30,25 +30,25 @@ class FileUpload extends Component
         $this->accept = $this->setAcceptedFiles($accept);
 
         if ($setting) {
-            $media = Media::find($setting);
+            $file = File::find($setting);
 
-            if ($media) {
+            if ($file) {
                 $this->file = true;
-                $this->thumbnail = $media->getUrl('thumbnail');
-                $this->isImage = $media->isImage();
-                $this->fileName = $media->name;
+                $this->thumbnail = $file->getUrl('thumbnail');
+                $this->isImage = $file->isImage();
+                $this->fileName = $file->name;
             }
         }
 
         if ($model) {
-            $media = $model->getMedia($name);
+            $file = $model->getFile($name);
 
-            if ($media) {
-                $this->isImage = $media->isImage();
-                $this->fileName = $media->name;
+            if ($file) {
+                $this->isImage = $file->isImage();
+                $this->fileName = $file->name;
             }
 
-            $this->file = $model->hasMedia($name);
+            $this->file = $model->HasFile($name);
             $this->thumbnail = $model->getThumbnailUrl($name);
         }
     }

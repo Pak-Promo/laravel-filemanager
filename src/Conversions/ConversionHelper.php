@@ -3,18 +3,18 @@
 namespace PakPromo\FileManager\Conversions;
 
 use Illuminate\Support\Facades\Storage;
-use PakPromo\FileManager\Models\Media;
+use PakPromo\FileManager\Models\File;
 use Intervention\Image\Laravel\Facades\Image;
-use PakPromo\FileManager\Jobs\MediaConversion;
+use PakPromo\FileManager\Jobs\FileConversion;
 use PakPromo\FileManager\Jobs\ThumbnailConversion;
 
 class ConversionHelper
 {
-    protected Media $media;
+    protected File $file;
 
-    public function conversions(int $media_id, array $conversions)
+    public function conversions(int $file_id, array $conversions)
     {
-        $this->media = Media::findOrFail($media_id);
+        $this->file = File::findOrFail($file_id);
 
         foreach ($conversions as $conversion) {
             $this->generateConversion($conversion);
@@ -25,10 +25,10 @@ class ConversionHelper
     {
         $this->createDirectory($conversion->name);
 
-        $original_image = Storage::disk($this->media->disk)
-            ->get($this->media->getFilePath());
+        $original_image = Storage::disk($this->file->disk)
+            ->get($this->file->getFilePath());
 
-        $image = $this->resizeMedia($original_image, $conversion);
+        $image = $this->resizeFile($original_image, $conversion);
 
         $webp_conversion = config('filemanager.webp_conversion');
         $webp_quality = config('filemanager.webp_quality') ?: 75;
@@ -36,16 +36,16 @@ class ConversionHelper
         if ($webp_conversion) {
             $image = $image->toWebp($webp_quality);
         } else {
-            $image = $image->encodeByMediaType();
+            $image = $image->encodeByFileType();
         }
 
-        Storage::disk($this->media->disk)
-            ->put($this->media->getConversionPath($conversion->name, $webp_conversion), $image->toFilePointer(), 'public');
+        Storage::disk($this->file->disk)
+            ->put($this->file->getConversionPath($conversion->name, $webp_conversion), $image->toFilePointer(), 'public');
 
         $this->updateConversionsAttribute($conversion->name, $webp_conversion);
     }
 
-    protected function resizeMedia(string $original_image, Conversion $conversion)
+    protected function resizeFile(string $original_image, Conversion $conversion)
     {
         if ($conversion->crop) {
             return Image::read($original_image)
@@ -61,35 +61,35 @@ class ConversionHelper
         return $image->scaleDown(height: $conversion->height);
     }
 
-    public function convertOriginalImageToWebp(int $media_id, array $media_conversions = []): void
+    public function convertOriginalImageToWebp(int $file_id, array $file_conversions = []): void
     {
-        $this->media = Media::findOrFail($media_id);
-        $original_image_path = $this->media->getFilePath();
+        $this->file = File::findOrFail($file_id);
+        $original_image_path = $this->file->getFilePath();
 
-        $original_image = Storage::disk($this->media->disk)
+        $original_image = Storage::disk($this->file->disk)
             ->get($original_image_path);
 
-        $webp_path = $this->media->getConversionPath('original', true);
+        $webp_path = $this->file->getConversionPath('original', true);
 
         $webp_quality = config('filemanager.webp_quality') ?: 75;
         $webp_quality = $webp_quality == 100 ? 99 : $webp_quality;
 
         $image = Image::read($original_image)->toWebp($webp_quality);
 
-        Storage::disk($this->media->disk)
+        Storage::disk($this->file->disk)
             ->put($webp_path, $image->toFilePointer(), 'public');
 
         $this->updateConversionsAttribute('original', true);
 
         // generate conversions
-        ThumbnailConversion::dispatch($media_id);
+        ThumbnailConversion::dispatch($file_id);
 
-        if (!empty($media_conversions)) {
-            MediaConversion::dispatch($media_id, $media_conversions);
+        if (!empty($file_conversions)) {
+            FileConversion::dispatch($file_id, $file_conversions);
         }
     }
 
-    public function generateThumbnailConversion(int $media_id): void
+    public function generateThumbnailConversion(int $file_id): void
     {
         $thumbnail_enable = config('filemanager.thumbnails.generate', true);
 
@@ -97,7 +97,7 @@ class ConversionHelper
             return;
         }
 
-        $this->media = Media::findOrFail($media_id);
+        $this->file = File::findOrFail($file_id);
 
         $this->createDirectory('thumbnail');
 
@@ -107,8 +107,8 @@ class ConversionHelper
         $webp_conversion = config('filemanager.webp_conversion');
         $webp_quality = config('filemanager.webp_quality') ?: 75;
 
-        $original_image = Storage::disk($this->media->disk)
-            ->get($this->media->getFilePath());
+        $original_image = Storage::disk($this->file->disk)
+            ->get($this->file->getFilePath());
 
         $image = Image::read($original_image)
             ->cover($width, $height);
@@ -116,30 +116,30 @@ class ConversionHelper
         if ($webp_conversion) {
             $image = $image->toWebp($webp_quality);
         } else {
-            $image = $image->encodeByMediaType();
+            $image = $image->encodeByFileType();
         }
 
-        Storage::disk($this->media->disk)
-            ->put($this->media->getConversionPath('thumbnail', $webp_conversion), $image->toFilePointer(), 'public');
+        Storage::disk($this->file->disk)
+            ->put($this->file->getConversionPath('thumbnail', $webp_conversion), $image->toFilePointer(), 'public');
 
         $this->updateConversionsAttribute('thumbnail', $webp_conversion);
     }
 
     protected function updateConversionsAttribute(string $key = 'original', bool $webp = false): void
     {
-        $conversions = $this->media->conversions;
-        $conversions[$key] = $this->media->getConversionPath($key, $webp);
+        $conversions = $this->file->conversions;
+        $conversions[$key] = $this->file->getConversionPath($key, $webp);
 
-        $this->media->conversions = $conversions;
-        $this->media->save();
+        $this->file->conversions = $conversions;
+        $this->file->save();
     }
 
     protected function createDirectory(string $directory): void
     {
-        $directory = $this->media->collection_name . DIRECTORY_SEPARATOR . $directory;
+        $directory = $this->file->collection_name . DIRECTORY_SEPARATOR . $directory;
 
-        if (! Storage::disk($this->media->disk)->exists($directory)) {
-            Storage::disk($this->media->disk)->makeDirectory($directory);
+        if (! Storage::disk($this->file->disk)->exists($directory)) {
+            Storage::disk($this->file->disk)->makeDirectory($directory);
         }
     }
 }

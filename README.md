@@ -1,4 +1,4 @@
-# Media Library for Laravel
+# File Manager for Laravel
 
 This package can associate images with Eloquent models.
 
@@ -25,7 +25,7 @@ php artisan vendor:publish --provider="PakPromo\FileManager\FileManagerServicePr
 
 ### 3. Preparing the database
 
-You need to publish the migration to create the media table:
+You need to publish the migration to create the file table:
 
 ```bash
 php artisan vendor:publish --provider="PakPromo\FileManager\FileManagerServiceProvider" --tag=filemanager-migration
@@ -39,37 +39,37 @@ php artisan migrate
 
 ## Usage
 
-Your Eloquent models should use the `PakPromo\FileManager\Traits\HasMedia` trait.
+Your Eloquent models should use the `PakPromo\FileManager\Traits\HasFile` trait.
 
 Use blade component to add file uploader in your form.
 
 ```php
-<x-medialibrary-file-upload name="image" />
+<x-filemanager-file-upload name="image" />
 ```
 
 For display old image in edit page.
 
 ```php
-<x-medialibrary-file-upload name="image" :model="$model" />
+<x-filemanager-file-upload name="image" :model="$model" />
 ```
 
 ## Upload
 
 ```php
 $model = Model::find(1);
-$model->handleMediaFromRequest()->toMediaCollection();
+$model->handleFileFromRequest()->toFileCollection();
 ```
 
 If your file input name is not `image` then define second param.
 
 ```php
-$model->handleMediaFromRequest('banner')->toMediaCollection();
+$model->handleFileFromRequest('banner')->toFileCollection();
 ```
 
 Upload to specific collection.
 
 ```php
-$model->handleMediaFromRequest()->toMediaCollection('images');
+$model->handleFileFromRequest()->toFileCollection('images');
 ```
 
 You can define default collection at eloquent level. Add below function in your model.
@@ -77,37 +77,37 @@ You can define default collection at eloquent level. Add below function in your 
 ```php
 public function defaultCollection(): string
 {
-    return 'post_images';
+    return 'promo_images';
 }
 ```
 
 Upload to specific disk.
 
 ```php
-$model->handleMediaFromRequest()->useDisk('s3')->toMediaCollection();
+$model->handleFileFromRequest()->useDisk('s3')->toFileCollection();
 ```
 
-### Register Media Conversions
+### Register File Conversions
 
 ```php
-public function registerMediaConversions()
+public function registerFileConversions()
 {
-    $this->addMediaConversion('post_main')
+    $this->addFileConversion('promo_image')
         ->width(420)
         ->height(350);
 }
 ```
 
-You can register as many media conversions as you want
+You can register as many file conversions as you want
 
 ```php
-public function registerMediaConversions()
+public function registerFileConversions()
 {
-    $this->addMediaConversion('post_main')
+    $this->addFileConversion('promo_image')
         ->width(420)
         ->height(350);
 
-    $this->addMediaConversion('post_detail')
+    $this->addFileConversion('banner')
         ->width(700)
         ->height(550);
 }
@@ -116,7 +116,7 @@ public function registerMediaConversions()
 Default force crop is disabled, but you can enable it
 
 ```php
-$this->addMediaConversion('post_main')
+$this->addFileConversion('promo_image')
     ->width(420)
     ->height(350)
     ->crop();
@@ -127,7 +127,7 @@ $this->addMediaConversion('post_main')
 If you want to disable registered conversions on some files
 
 ```php
-$model->handleMediaFromRequest()->withoutConversions()->toMediaCollection();
+$model->handleFileFromRequest()->withoutConversions()->toFileCollection();
 ```
 
 ## Configuration
@@ -147,38 +147,38 @@ Or you can use our blade directive.
 ## Gallery with Dropzone
 
 ```php
-<x-medialibrary-dropzone name="gallery" />
+<x-filemanager-dropzone name="gallery" />
 ```
 
 Attach gallery to model using blelow code.
 
 ```php
-$model->attachGalleryToModelFromRequest('gallery')->toMediaCollection();
+$model->attachGalleryToModelFromRequest('gallery')->toFileCollection();
 ```
 
 You can also define collection for gallery.
 
 ```php
-<x-medialibrary-dropzone name="gallery" collection="dropzone" />
+<x-filemanager-dropzone name="gallery" collection="dropzone" />
 ```
 
 You can define model to dropzone component as well.
 When you define model to component all images are automatically attached to model.
 
 ```php
-<x-medialibrary-dropzone name="gallery" :model="$model" />
+<x-filemanager-dropzone name="gallery" :model="$model" />
 ```
 
 You can also change the default dropzone message.
 
 ```php
-<x-medialibrary-dropzone name="gallery" message="Drop files here" />
+<x-filemanager-dropzone name="gallery" message="Drop files here" />
 ```
 
-## Add Media from Url
+## Add File from Url
 
 ```php
-$model->addMediaFromUrl($url, 'image')->toMediaCollection();
+$model->addFileFromUrl($url, 'image')->toFileCollection();
 ```
 
 ## Implements with Laravel Settings
@@ -192,7 +192,7 @@ composer require pakpromo/laravel-settings
 Blade component to display old file
 
 ```php
-<x-medialibrary-file-upload name="image" setting="{{ setting()->get('name') }}" />
+<x-filemanager-file-upload name="image" setting="{{ setting()->get('name') }}" />
 ```
 
 To upload file

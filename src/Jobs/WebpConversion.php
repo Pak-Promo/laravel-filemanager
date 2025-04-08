@@ -13,20 +13,20 @@ class WebpConversion implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected int $media_id;
+    protected int $file_id;
 
-    protected array $media_conversions;
+    protected array $file_conversions;
 
-    public function __construct(int $media_id, array $media_conversions)
+    public function __construct(int $file_id, array $file_conversions)
     {
         $this->onQueue(config('filemanager.queue_name'));
 
-        $this->media_id = $media_id;
-        $this->media_conversions = $media_conversions;
+        $this->file_id = $file_id;
+        $this->file_conversions = $file_conversions;
     }
 
     public function handle()
     {
-        (new ConversionHelper)->convertOriginalImageToWebp($this->media_id, $this->media_conversions);
+        (new ConversionHelper)->convertOriginalImageToWebp($this->file_id, $this->file_conversions);
     }
 }

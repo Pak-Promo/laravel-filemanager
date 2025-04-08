@@ -5,11 +5,11 @@ namespace PakPromo\FileManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use PakPromo\FileManager\Exceptions\InvalidUrlmageException;
-use PakPromo\FileManager\Traits\MediaHelper;
+use PakPromo\FileManager\Traits\FileHelper;
 
-class MediaUploadFromUrl
+class FileUploadFromUrl
 {
-    use MediaHelper;
+    use FileHelper;
 
     public string $url;
 
@@ -20,7 +20,7 @@ class MediaUploadFromUrl
         $this->disk = config('filemanager.disk_name');
     }
 
-    public function addMediaFromUrl(string $url, string $type, Model $model, string|null $title = null): MediaUploadFromUrl
+    public function addFileFromUrl(string $url, string $type, Model $model, string|null $title = null): FileUploadFromUrl
     {
         $this->url = $url;
         $this->type = $type;
@@ -33,7 +33,7 @@ class MediaUploadFromUrl
         return $this;
     }
 
-    public function toMediaCollection(string $collection = ''): array
+    public function toFileCollection(string $collection = ''): array
     {
         $this->collection = $collection;
 
@@ -50,7 +50,7 @@ class MediaUploadFromUrl
 
         Storage::disk($this->disk)->put($file_path, file_get_contents($this->url), 'public');
 
-        $media = $this->model->attachments()->create([
+        $file = $this->model->attachments()->create([
             'type' => $this->type,
             'file_name' => $file_name,
             'name' => $this->title,
@@ -61,12 +61,12 @@ class MediaUploadFromUrl
             'sort_order' => $this->model->attachments()->whereType($this->type)->count(),
         ]);
 
-        $this->setDefaultConversions($media);
+        $this->setDefaultConversions($file);
 
-        $this->dispatchConversionJobs($media);
+        $this->dispatchConversionJobs($file);
 
         return [
-            'media_id' => $media->id,
+            'file_id' => $file->id,
             'file_name' => $file_name,
         ];
     }

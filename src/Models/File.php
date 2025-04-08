@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use PakPromo\FileManager\Exceptions\ConversionNotAvailableException;
 
-class Media extends Model
+class File extends Model
 {
     protected $guarded = [];
 

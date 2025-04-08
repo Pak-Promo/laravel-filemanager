@@ -5,11 +5,11 @@ namespace PakPromo\FileManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use PakPromo\FileManager\Traits\MediaHelper;
+use PakPromo\FileManager\Traits\FileHelper;
 
-class MediaUploadFromBase64
+class FileUploadFromBase64
 {
-    use MediaHelper;
+    use FileHelper;
 
     public string $base64;
 
@@ -20,7 +20,7 @@ class MediaUploadFromBase64
         $this->disk = config('filemanager.disk_name');
     }
 
-    public function add(string $base64, string $format, string $type, Model $model): MediaUploadFromBase64
+    public function add(string $base64, string $format, string $type, Model $model): FileUploadFromBase64
     {
         $this->base64 = $base64;
         $this->format = $format;
@@ -32,7 +32,7 @@ class MediaUploadFromBase64
         return $this;
     }
 
-    public function toMediaCollection(string $collection = ''): array
+    public function toFileCollection(string $collection = ''): array
     {
         $this->collection = $collection;
 
@@ -41,7 +41,7 @@ class MediaUploadFromBase64
 
         Storage::disk($this->disk)->put($file_path, $this->decodeBase64Code(), 'public');
 
-        $media = $this->model->attachments()->create([
+        $file = $this->model->attachments()->create([
             'type' => $this->type,
             'file_name' => $file_name,
             'name' => $this->type,
@@ -52,12 +52,12 @@ class MediaUploadFromBase64
             'sort_order' => $this->model->attachments()->whereType($this->type)->count(),
         ]);
 
-        $this->setDefaultConversions($media);
+        $this->setDefaultConversions($file);
 
-        $this->dispatchConversionJobs($media);
+        $this->dispatchConversionJobs($file);
 
         return [
-            'media_id' => $media->id,
+            'file_id' => $file->id,
             'file_name' => $file_name,
         ];
     }

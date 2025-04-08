@@ -13,17 +13,17 @@ class ThumbnailConversion implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected int $media_id;
+    protected int $file_id;
 
-    public function __construct(int $media_id)
+    public function __construct(int $file_id)
     {
         $this->onQueue(config('filemanager.queue_name'));
 
-        $this->media_id = $media_id;
+        $this->file_id = $file_id;
     }
 
     public function handle()
     {
-        (new ConversionHelper)->generateThumbnailConversion($this->media_id);
+        (new ConversionHelper)->generateThumbnailConversion($this->file_id);
     }
 }

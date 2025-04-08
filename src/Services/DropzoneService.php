@@ -3,13 +3,13 @@
 namespace PakPromo\FileManager\Services;
 
 use Illuminate\Support\Facades\Storage;
-use PakPromo\FileManager\MediaUpload;
-use PakPromo\FileManager\Models\Media;
-use PakPromo\FileManager\Traits\MediaHelper;
+use PakPromo\FileManager\FileUpload;
+use PakPromo\FileManager\Models\File;
+use PakPromo\FileManager\Traits\FileHelper;
 
 class DropzoneService
 {
-    use MediaHelper;
+    use FileHelper;
 
     public function __construct()
     {
@@ -29,8 +29,8 @@ class DropzoneService
 
     public function delete(array $request)
     {
-        if (! empty($request['media_id'])) {
-            Media::findOrFail($request['media_id'])->delete();
+        if (! empty($request['file_id'])) {
+            File::findOrFail($request['file_id'])->delete();
 
             return;
         }
@@ -46,7 +46,7 @@ class DropzoneService
         $response = [];
 
         foreach ($this->request['file'] as $file) {
-            $media = (new MediaUpload)->uploadFromGallery(
+            $file = (new FileUpload)->uploadFromGallery(
                 $model,
                 $this->request['type'],
                 $file,
@@ -54,7 +54,7 @@ class DropzoneService
             );
 
             $response[] = [
-                'media_id' => $media['media_id'],
+                'file_id' => $file['file_id'],
                 'file_name' => $file->getClientOriginalName(),
                 'new_name' => $file->hashName(),
             ];
@@ -73,7 +73,7 @@ class DropzoneService
             $file->storeAs($this->temporaryPath(), $filename, $this->disk);
 
             $response[] = [
-                'media_id' => 0,
+                'file_id' => 0,
                 'file_name' => $file->getClientOriginalName(),
                 'new_name' => $filename,
             ];

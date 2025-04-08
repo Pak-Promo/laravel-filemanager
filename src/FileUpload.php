@@ -5,11 +5,11 @@ namespace PakPromo\FileManager;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Model;
 use PakPromo\FileManager\Exceptions\FileMissingException;
-use PakPromo\FileManager\Traits\MediaHelper;
+use PakPromo\FileManager\Traits\FileHelper;
 
-class MediaUpload
+class FileUpload
 {
-    use MediaHelper;
+    use FileHelper;
 
     public string|null $title;
 
@@ -18,7 +18,7 @@ class MediaUpload
         $this->disk = config('filemanager.disk_name');
     }
 
-    public function handleMediaFromRequest(array $request, string $type, Model $model, string|null $title = null): MediaUpload
+    public function handleFileFromRequest(array $request, string $type, Model $model, string|null $title = null): FileUpload
     {
         $this->request = $request;
         $this->type = $type;
@@ -30,7 +30,7 @@ class MediaUpload
         return $this;
     }
 
-    public function addMediaFromRequest(array $request, string $type, Model $model, string|null $title = null): MediaUpload
+    public function addFileFromRequest(array $request, string $type, Model $model, string|null $title = null): FileUpload
     {
         $this->request = $request;
         $this->type = $type;
@@ -46,7 +46,7 @@ class MediaUpload
         return $this;
     }
 
-    public function toMediaCollection(string $collection = '')
+    public function toFileCollection(string $collection = '')
     {
         $this->collection = $collection;
 
@@ -105,7 +105,7 @@ class MediaUpload
             $this->title = $file->getClientOriginalName();
         }
 
-        $media = $this->model->attachments()->create([
+        $file = $this->model->attachments()->create([
             'type' => $this->type,
             'file_name' => $filename,
             'name' => $this->title,
@@ -116,12 +116,12 @@ class MediaUpload
             'sort_order' => $this->model->attachments()->whereType($this->type)->count(),
         ]);
 
-        $this->setDefaultConversions($media);
+        $this->setDefaultConversions($file);
 
-        $this->dispatchConversionJobs($media);
+        $this->dispatchConversionJobs($file);
 
         return [
-            'media_id' => $media->id,
+            'file_id' => $file->id,
             'file_name' => $file->hashName(),
         ];
     }

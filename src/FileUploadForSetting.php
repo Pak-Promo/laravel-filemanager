@@ -5,19 +5,19 @@ namespace PakPromo\FileManager;
 use Illuminate\Http\UploadedFile;
 use PakPromo\FileManager\Jobs\ThumbnailConversion;
 use PakPromo\FileManager\Jobs\WebpConversion;
-use PakPromo\FileManager\Models\Media;
-use PakPromo\FileManager\Traits\MediaHelper;
+use PakPromo\FileManager\Models\File;
+use PakPromo\FileManager\Traits\FileHelper;
 
-class MediaUploadForSetting
+class FileUploadForSetting
 {
-    use MediaHelper;
+    use FileHelper;
 
     public function __construct()
     {
         $this->disk = config('filemanager.disk_name');
     }
 
-    public function toMediaCollection(string $collection = '')
+    public function toFileCollection(string $collection = '')
     {
         $this->collection = $collection;
 
@@ -32,9 +32,9 @@ class MediaUploadForSetting
             return null;
         }
 
-        $media = $this->upload($request[$type], $type);
+        $file = $this->upload($request[$type], $type);
 
-        return $media['media_id'];
+        return $file['file_id'];
     }
 
     public function upload(UploadedFile $file, string $type): array
@@ -45,7 +45,7 @@ class MediaUploadForSetting
 
         $file->storeAs($this->getFileUploadPath(), $filename, $this->disk);
 
-        $media = Media::create([
+        $file = File::create([
             'type' => $type,
             'file_name' => $filename,
             'name' => $file->getClientOriginalName(),
@@ -55,20 +55,20 @@ class MediaUploadForSetting
             'collection_name' => $this->getCollection(),
         ]);
 
-        $this->setDefaultConversions($media);
+        $this->setDefaultConversions($file);
 
-        if (in_array($media->mime_type, $this->allowedMimeTypesForConversion())) {
+        if (in_array($file->mime_type, $this->allowedMimeTypesForConversion())) {
             $webp_conversion = config('filemanager.webp_conversion');
 
-            if ($webp_conversion && $media->mime_type !== 'image/webp') {
-                WebpConversion::dispatch($media->id, []);
+            if ($webp_conversion && $file->mime_type !== 'image/webp') {
+                WebpConversion::dispatch($file->id, []);
             } else {
-                ThumbnailConversion::dispatch($media->id);
+                ThumbnailConversion::dispatch($file->id);
             }
         }
 
         return [
-            'media_id' => $media->id,
+            'file_id' => $file->id,
             'file_name' => $filename,
         ];
     }
@@ -87,10 +87,10 @@ class MediaUploadForSetting
             $this->checkMaxFileUploadSize($request[$type]);
         }
 
-        $media = Media::find(setting()->get($option_name));
+        $file = File::find(setting()->get($option_name));
 
-        if ($media) {
-            $media->delete();
+        if ($file) {
+            $file->delete();
         }
     }
 }

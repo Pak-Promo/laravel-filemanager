@@ -9,23 +9,23 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use PakPromo\FileManager\Conversions\ConversionHelper;
 
-class MediaConversion implements ShouldQueue
+class FileConversion implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected int $media_id;
+    protected int $file_id;
     protected array $conversions;
 
-    public function __construct(int $media_id, array $conversions)
+    public function __construct(int $file_id, array $conversions)
     {
         $this->onQueue(config('filemanager.queue_name'));
 
-        $this->media_id = $media_id;
+        $this->file_id = $file_id;
         $this->conversions = $conversions;
     }
 
     public function handle()
     {
-        (new ConversionHelper)->conversions($this->media_id, $this->conversions);
+        (new ConversionHelper)->conversions($this->file_id, $this->conversions);
     }
 }
